@@ -132,7 +132,7 @@ class Track:
         quality, extension = DOWNLOAD_QUALITIES[quality_id]
         download_link = f'{self.base_download_path}/{quality}/{self.filename}{extension}'
         resp = requests.head(download_link)
-        while resp.status_code == 404 and quality_id < 4:
+        while resp.status_code in [404, 302] and quality_id < 4:
             # If specified quality is not available for current track, try lower quality
             logging.warning(f'Download link for quality "{quality}" of track {self.track_id} returned 404 error. Trying lower quality.')
             quality_id += 1
@@ -140,7 +140,7 @@ class Track:
             download_link = f'{self.base_download_path}/{quality}/{self.filename}{extension}'
             resp = requests.head(download_link)
         
-        if resp.status_code == 404:
+        if resp.status_code in [404, 302]:
             raise NotFoundError(f'Cannot find available download link for {self.track_id}.')
         elif resp.status_code >= 400:
             raise Error(f'Unknown error.')

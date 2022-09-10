@@ -2,6 +2,7 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 from model.track import Track
+from model.artist import Artist
 from model.utils import extract_id
 
 
@@ -10,15 +11,18 @@ def main(args):
     output_dir = Path(args.output)
     quality = args.quality
 
-    assert url.startswith('https://chiasenhac.vn/mp3/')
+    assert url.startswith('https://chiasenhac.vn/ca-si/')
     
-    s_id = extract_id(url)
-    Track(s_id).download(output_dir, quality)
+    a_id = extract_id(url)
+    artist = Artist(a_id)
+    
+    for track in artist.songs:
+        Track(track).download(output_dir, quality)
 
 
 if __name__ == '__main__':
-    parser = ArgumentParser(description='Download single track from chiasenhac.vn.')
-    parser.add_argument('url', type=str, help='Track URL. Format: https://chiasenhac.vn/mp3/xxx.html')
+    parser = ArgumentParser(description='Download tracks by artist from chiasenhac.vn.')
+    parser.add_argument('url', type=str, help='Artist URL. Format: https://chiasenhac.vn/ca-si/')
     parser.add_argument('--output', '-o', type=str, help='Output directory', required=True)
     parser.add_argument('--quality', '-q', 
         type=int,
@@ -26,4 +30,5 @@ if __name__ == '__main__':
         default=0,
         choices=[0, 1, 2, 3, 4]
     )
+
     main(parser.parse_args())
