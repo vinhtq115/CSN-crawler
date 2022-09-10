@@ -107,7 +107,8 @@ class Track:
     def download(
         self,
         save_dir: Union[str, Path],
-        quality_id: int = 0
+        quality_id: int = 0,
+        number: str = '',
     ):
         """Download track to specified directory. If chosen quality is not available,
         automatically downgrade to highest one available.
@@ -115,7 +116,7 @@ class Track:
         Args:
             save_dir (Union[str, Path]): Destination directory
             quality_id (int, optional): Quality ID. 0 = Lossless FLAC, 1 = M4A 500kbps, 2 = MP3 320kbps, 3 = MP3 128kbps, 4 = M4A 32kbps. Defaults to 0.
-
+            number (str): Numbering (for album). Default to ''.
         Raises:
             InvalidQualityError: `quality_id` not in range [0, 4]
             NotFoundError: No download links available
@@ -147,7 +148,7 @@ class Track:
 
         # Download
         logging.info(f'Downloading track {self.track_id} with quality {quality}.')
-        filename = f'{self.artists_name} - {self.song_title} [{self.track_id}]{extension}'
+        filename = f'{number}{self.artists_name} - {self.song_title} [{self.track_id}]{extension}'
         download_path = Path(save_dir) / filename
         download(download_link, download_path)
         logging.info(f'Downloaded track {self.track_id} to {str(download_path.absolute())}.')
