@@ -6,7 +6,6 @@ from bs4.element import Tag
 
 from model.exceptions import *
 from model.logger import logging
-from model.track import Track
 from model.utils import extract_id, is_error
 
 
