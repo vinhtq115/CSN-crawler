@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 
 from model.exceptions import *
 from model.logger import logging
-from model.utils import is_error
+from model.utils import extract_id, is_error
 
 
 artist_id_pattern = re.compile('\'artist_id\': \'[0-9]+\'')
@@ -48,7 +48,7 @@ class Artist:
         
         # Get info
         self.artist_name = wrapper.findChild(class_='artist_name_box').text
-        self.artist_id_number = int(re.findall('\d+', artist_id_pattern.findall(page.text)[0])[0])
+        self.artist_id_number = int(re.findall('\\d+', artist_id_pattern.findall(page.text)[0])[0])
 
         logging.info(f'Getting song list of artist {self.artist_name} [{self.artist_id_number}] [{self.artist_id}].')
         number_of_pages = int(container.findChild(id='music').find('center').text.split(' ')[-1])
@@ -76,8 +76,6 @@ class Artist:
             for song in songs:
                 # Get song id
                 href = song.findChildren(class_='media-title')[0].find('a')['href']
-                s_id = href.split('/')[-1]
-                s_id = s_id[s_id.rfind('-') + 1 : s_id.rfind('.')]
-                song_ids.add(s_id)
+                song_ids.add(extract_id(href))
 
         return song_ids

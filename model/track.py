@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 
 from model.exceptions import *
 from model.logger import logging
-from model.utils import is_error
+from model.utils import is_error, download, extract_id
 
 
 DOWNLOAD_QUALITIES = {
@@ -75,18 +75,14 @@ class Track:
                 artists = item.findAll('a')
                 for artist in artists:
                     self.artists.append(artist.text)
-                    a_id = artist['href']
-                    a_id = a_id.split('/')[-1]
-                    self.artist_ids.append(a_id[a_id.rfind('-') + 1 : a_id.rfind('.')])
+                    self.artist_ids.append(extract_id(artist['href']))
             elif text[:text.find(':')] == 'Sáng tác':
                 self.composers = text[text.find(':') + 2:]
             elif text[:text.find(':')] == 'Năm phát hành':
                 self.published_year = int(text[text.rfind(' ') + 1:])
             elif text[:text.find(':')] == 'Album':
                 self.album = text[text.find(':') + 2:]
-                b_id = item.findAll('a')[0]['href']
-                b_id = b_id.split('/')[-1]
-                self.album_id = b_id[b_id.rfind('-') + 1 : b_id.rfind('.')]
+                self.album_id = extract_id(item.findAll('a')[0]['href'])
 
         # Get download link
         download_items = soup.findChildren(class_='download_item')
@@ -135,14 +131,14 @@ class Track:
         # Try download with specified quality.
         quality, extension = DOWNLOAD_QUALITIES[quality_id]
         download_link = f'{self.base_download_path}/{quality}/{self.filename}{extension}'
-        resp = requests.get(download_link)
+        resp = requests.head(download_link)
         while resp.status_code == 404 and quality_id < 4:
             # If specified quality is not available for current track, try lower quality
             logging.warning(f'Download link for quality "{quality}" of track {self.track_id} returned 404 error. Trying lower quality.')
             quality_id += 1
             quality, extension = DOWNLOAD_QUALITIES[quality_id]
             download_link = f'{self.base_download_path}/{quality}/{self.filename}{extension}'
-            resp = requests.get(download_link)
+            resp = requests.head(download_link)
         
         if resp.status_code == 404:
             raise NotFoundError(f'Cannot find available download link for {self.track_id}.')
@@ -153,8 +149,7 @@ class Track:
         logging.info(f'Downloading track {self.track_id} with quality {quality}.')
         filename = f'{self.artists_name} - {self.song_title} [{self.track_id}]{extension}'
         download_path = Path(save_dir) / filename
-        with open(download_path, 'wb') as f:
-            f.write(resp.content)
+        download(download_link, download_path)
         logging.info(f'Downloaded track {self.track_id} to {str(download_path.absolute())}.')
 
         return True
