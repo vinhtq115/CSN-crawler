@@ -23,6 +23,16 @@ class Track:
         self,
         track_id: str
     ):
+        """Initialize Track.
+
+        Args:
+            track_id (str): Track id. 
+
+        Raises:
+            NetworkError: If site cannot be reached
+            NotFoundError: If site returns 404
+            Error: Unknown errors
+        """
         self.track_id = track_id
         
         # Parse page
@@ -103,6 +113,18 @@ class Track:
         save_dir: Union[str, Path],
         quality_id: int = 0
     ):
+        """Download track to specified directory. If chosen quality is not available,
+        automatically downgrade to highest one available.
+
+        Args:
+            save_dir (Union[str, Path]): Destination directory
+            quality_id (int, optional): Quality ID. 0 = Lossless FLAC, 1 = M4A 500kbps, 2 = MP3 320kbps, 3 = MP3 128kbps, 4 = M4A 32kbps. Defaults to 0.
+
+        Raises:
+            InvalidQualityError: `quality_id` not in range [0, 4]
+            NotFoundError: No download links available
+            Error: Unknown error
+        """
         # Check if chosen quality is valid
         if int(quality_id) > 4 or int(quality_id) < 0:
             raise InvalidQualityError(quality_id)
@@ -123,7 +145,7 @@ class Track:
             resp = requests.get(download_link)
         
         if resp.status_code == 404:
-            raise Error(f'Cannot find available download link for {self.track_id}.')
+            raise NotFoundError(f'Cannot find available download link for {self.track_id}.')
         elif resp.status_code >= 400:
             raise Error(f'Unknown error.')
 
