@@ -16,6 +16,16 @@ class Artist:
         self,
         artist_id: str
     ):
+        """Initialize Artist.
+
+        Args:
+            artist_id (str): Artist id.
+
+        Raises:
+            NetworkError: If site cannot be reached
+            NotFoundError: If site returns 404
+            Error: Unknown errors
+        """
         self.artist_id = artist_id
 
         # Parse page
