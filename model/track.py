@@ -153,4 +153,4 @@ class Track:
         download(download_link, download_path)
         logging.info(f'Downloaded track {self.track_id} to {str(download_path.absolute())}.')
 
-        return True
+        return download_path
