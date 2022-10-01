@@ -14,6 +14,8 @@ def main(args):
 
     assert url.startswith('https://chiasenhac.vn/nghe-album/')
     
+    Path(output_dir).mkdir(parents=True, exist_ok=True)
+
     a_id = extract_id(url)
     album = Album(a_id)
     
