@@ -37,7 +37,7 @@ class Track:
         
         # Parse page
         try:
-            page = requests.get(f'https://chiasenhac.vn/mp3/{self.track_id}.html')
+            page = get(f'https://chiasenhac.vn/mp3/{self.track_id}.html')
         except NetworkError as e:
             logging.error(f'Failed to get info of track {self.track_id}.')
             raise e

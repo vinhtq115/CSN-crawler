@@ -76,7 +76,9 @@ class Database(Thread):
                     composer text,
                     album_id text DEFAULT NULL REFERENCES albums(id),
                     year_published integer,
-                    download_path text DEFAULT NULL
+                    download_path text DEFAULT NULL,
+                    base_download_path text,
+                    filename text
                 );
             """)
 

@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 
 from model.exceptions import *
 from model.logger import logging
-from model.utils import is_error, download, extract_id
+from model.utils import is_error, download, extract_id, get
 
 
 DOWNLOAD_QUALITIES = {
@@ -37,7 +37,7 @@ class Video:
         
         # Parse page
         try:
-            page = requests.get(f'https://chiasenhac.vn/hd/{self.video_id}.html')
+            page = get(f'https://chiasenhac.vn/hd/{self.video_id}.html')
         except NetworkError as e:
             logging.error(f'Failed to get info of video {self.video_id}.')
             raise e
