@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 
 from model.exceptions import *
 from model.logger import logging
-from model.utils import is_error, download, extract_id
+from model.utils import is_error, download, extract_id, get
 
 
 DOWNLOAD_QUALITIES = {
@@ -38,9 +38,9 @@ class Track:
         # Parse page
         try:
             page = requests.get(f'https://chiasenhac.vn/mp3/{self.track_id}.html')
-        except requests.exceptions.RequestException as e:
-            logging.error(e)
-            raise NetworkError
+        except NetworkError as e:
+            logging.error(f'Failed to get info of track {self.track_id}.')
+            raise e
 
         soup = BeautifulSoup(page.text, 'html.parser')
         wrapper = soup.findChildren(class_='wrapper_content')[0]
@@ -75,6 +75,8 @@ class Track:
                 artists = item.findAll('a')
                 for artist in artists:
                     self.artists.append(artist.text)
+                    if 'tim-kiem?q' in artist['href']:
+                        continue
                     self.artist_ids.append(extract_id(artist['href']))
             elif text[:text.find(':')] == 'Sáng tác':
                 self.composers = text[text.find(':') + 2:]

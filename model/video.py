@@ -37,10 +37,10 @@ class Video:
         
         # Parse page
         try:
-            page = requests.get(f'https://chiasenhac.vn/mp3/{self.video_id}.html')
-        except requests.exceptions.RequestException as e:
-            logging.error(e)
-            raise NetworkError
+            page = requests.get(f'https://chiasenhac.vn/hd/{self.video_id}.html')
+        except NetworkError as e:
+            logging.error(f'Failed to get info of video {self.video_id}.')
+            raise e
 
         soup = BeautifulSoup(page.text, 'html.parser')
         wrapper = soup.findChildren(class_='wrapper_content')[0]

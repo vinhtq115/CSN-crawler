@@ -1,12 +1,11 @@
 import re
 
-import requests
 from bs4 import BeautifulSoup
 from bs4.element import Tag
 
 from model.exceptions import *
 from model.logger import logging
-from model.utils import extract_id, is_error
+from model.utils import extract_id, is_error, get
 
 
 artist_id_pattern = re.compile('\'artist_id\': \'[0-9]+\'')
@@ -31,10 +30,10 @@ class Album:
 
         # Parse page
         try:
-            page = requests.get(f'https://chiasenhac.vn/nghe-album/{self.album_id}.html')
-        except requests.exceptions.RequestException as e:
-            logging.error(e)
-            raise NetworkError
+            page = get(f'https://chiasenhac.vn/nghe-album/{self.album_id}.html')
+        except NetworkError as e:
+            logging.error(f'Failed to get info of album {album_id}.')
+            raise e
 
         soup = BeautifulSoup(page.text, 'html.parser')
         wrapper = soup.findChildren(class_='wrapper_content')[0]

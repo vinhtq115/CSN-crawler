@@ -1,15 +1,16 @@
 import re
 
-import requests
 from bs4 import BeautifulSoup
 
 from model.exceptions import *
 from model.logger import logging
-from model.utils import extract_id, is_error
+from model.utils import extract_id, is_error, get
 
 
 artist_id_pattern = re.compile('\'artist_id\': \'[0-9]+\'')
-
+NO_SONGS = re.compile('Chưa có bài hát nào')
+NO_ALBUMS = re.compile('Chưa có album nào')
+NO_VIDEOS = re.compile('Chưa có video nào')
 
 class Artist:
     def __init__(
@@ -39,10 +40,10 @@ class Artist:
 
         # Parse page
         try:
-            page = requests.get(f'https://chiasenhac.vn/ca-si/{a_id}.html')
-        except requests.exceptions.RequestException as e:
-            logging.error(e)
-            raise NetworkError
+            page = get(f'https://chiasenhac.vn/ca-si/{a_id}.html')
+        except NetworkError as e:
+            logging.error(f'Failed to get info of artist {a_id}.')
+            raise e
 
         soup = BeautifulSoup(page.text, 'html.parser')
         wrapper = soup.findChildren(class_='wrapper_content')[0]
@@ -72,8 +73,13 @@ class Artist:
         logging.info(f'Getting song list of artist {self.artist_name} [{self.artist_id_number}] [{self.artist_id}].')
         # Get total number of music pages
         url = f'https://chiasenhac.vn/tab_artist?artist_id={self.artist_id_number}&tab=music'
-        page = requests.get(url)
-        if 'Chưa có bài hát nào' in page.text:
+        try:
+            page = get(url)
+        except NetworkError as e:
+            logging.error(f'Failed to get songs of artist {self.artist_id}.')
+            raise e
+
+        if NO_SONGS.search(page.text):
             return song_ids
         
         soup = BeautifulSoup(page.text, 'html.parser')
@@ -83,7 +89,11 @@ class Artist:
         for page_idx in range(number_of_pages):
             logging.info(f'Parsing page {page_idx + 1}/{number_of_pages} of music tab of artist {self.artist_name} [{self.artist_id_number}].')
             url = f'https://chiasenhac.vn/tab_artist?page={page_idx + 1}&artist_id={self.artist_id_number}&tab=music'
-            page = requests.get(url)
+            try:
+                page = get(url)
+            except NetworkError as e:
+                logging.error(f'Failed to get songs on page {page_idx + 1} of artist {self.artist_id}.')
+                raise e
             soup = BeautifulSoup(page.text, 'html.parser')
 
             songs = soup.findAll(class_='media')
@@ -105,8 +115,13 @@ class Artist:
         logging.info(f'Getting video list of artist {self.artist_name} [{self.artist_id_number}] [{self.artist_id}].')
         # Get total number of video pages
         url = f'https://chiasenhac.vn/tab_artist?artist_id={self.artist_id_number}&tab=video'
-        page = requests.get(url)
-        if 'Chưa có video nào' in page.text:
+        try:
+            page = get(url)
+        except NetworkError as e:
+            logging.error(f'Failed to get videos of artist {self.artist_id}.')
+            raise e
+
+        if NO_VIDEOS.search(page.text):
             return videos_ids
         
         soup = BeautifulSoup(page.text, 'html.parser')
@@ -116,7 +131,11 @@ class Artist:
         for page_idx in range(number_of_pages):
             logging.info(f'Parsing page {page_idx + 1}/{number_of_pages} of video tab of artist {self.artist_name} [{self.artist_id_number}].')
             url = f'https://chiasenhac.vn/tab_artist?page={page_idx + 1}&artist_id={self.artist_id_number}&tab=video'
-            page = requests.get(url)
+            try:
+                page = get(url)
+            except NetworkError as e:
+                logging.error(f'Failed to get videos on page {page_idx + 1} of artist {self.artist_id}.')
+                raise e
             soup = BeautifulSoup(page.text, 'html.parser')
 
             videos = soup.findAll(class_='card-title')
@@ -138,8 +157,13 @@ class Artist:
         logging.info(f'Getting album list of artist {self.artist_name} [{self.artist_id_number}] [{self.artist_id}].')
         # Get total number of album pages
         url = f'https://chiasenhac.vn/tab_artist?artist_id={self.artist_id_number}&tab=album'
-        page = requests.get(url)
-        if 'Chưa có album nào' in page.text:
+        try:
+            page = get(url)
+        except NetworkError as e:
+            logging.error(f'Failed to get albums of artist {self.artist_id}.')
+            raise e
+
+        if NO_ALBUMS.search(page.text):
             return albums_ids
 
         soup = BeautifulSoup(page.text, 'html.parser')
@@ -149,7 +173,11 @@ class Artist:
         for page_idx in range(number_of_pages):
             logging.info(f'Parsing page {page_idx + 1}/{number_of_pages} of album tab of artist {self.artist_name} [{self.artist_id_number}].')
             url = f'https://chiasenhac.vn/tab_artist?page={page_idx + 1}&artist_id={self.artist_id_number}&tab=album'
-            page = requests.get(url)
+            try:
+                page = get(url)
+            except NetworkError as e:
+                logging.error(f'Failed to get albums on page {page_idx + 1} of artist {self.artist_id}.')
+                raise e
             soup = BeautifulSoup(page.text, 'html.parser')
 
             albums = soup.findAll(class_='card-title')
